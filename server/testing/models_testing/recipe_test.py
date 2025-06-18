@@ -2,7 +2,7 @@ import pytest
 from sqlalchemy.exc import IntegrityError
 
 from app import app
-from models import db, Recipe
+from models import db, Recipe, User
 
 class TestRecipe:
     '''User in models.py'''
@@ -15,7 +15,10 @@ class TestRecipe:
             Recipe.query.delete()
             db.session.commit()
 
-            recipe = Recipe(
+            user = User(username="Prabhdip")
+            user.password_hash = "secret"  # Set password hash so _password_hash is not NULL
+
+            recipe_1 = Recipe(
                     title="Delicious Shed Ham",
                     instructions="""Or kind rest bred with am shed then. In""" + \
                         """ raptures building an bringing be. Elderly is detract""" + \
@@ -27,8 +30,22 @@ class TestRecipe:
                         """ something.""",
                     minutes_to_complete=60,
                     )
+            recipe_2 = Recipe(
+                    title="Hasty Party Ham",
+                    instructions="""As am hastily invited settled at limited""" + \
+                                 """ civilly fortune me. Really spring in extent""" + \
+                                 """ an by. Judge but built gay party world. Of""" + \
+                                 """ so am he remember although required. Bachelor""" + \
+                                 """ unpacked be advanced at. Confined in declared""" + \
+                                 """ marianne is vicinity.""",
+                    minutes_to_complete=30,
+                    )
 
-            db.session.add(recipe)
+            # Associate recipes with user
+            recipe_1.user = user
+            recipe_2.user = user
+
+            db.session.add_all([user, recipe_1, recipe_2])
             db.session.commit()
 
             new_recipe = Recipe.query.filter(Recipe.title == "Delicious Shed Ham").first()
